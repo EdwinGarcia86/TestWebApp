@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AccesIA — Vista previa interactiva</title>
+<style>
+  :root{
+    --purple:#6750A4; --purple-dark:#3F2B5B; --lilac:#EADDFF; --pink:#C2185B;
+    --bg:#FFFBFF; --ink:#1D1B20; --surface:#FFFFFF; --muted:#625B71;
+    --blue:#DCEEFF; --rose:#FFE0EC; --edu:#EADDFF; --peach:#FFE0B2; --mint:#C8E6C9; --sky:#B3E5FC;
+    --fs:15px; --radius:20px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;background:#EFEAF5;color:var(--ink)}
+  .topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 22px;background:#fff;border-bottom:1px solid #E6DFF0}
+  .topbar h1{font-size:20px;margin:0;color:var(--purple)}
+  .badge{font-size:12px;border-radius:99px;padding:5px 10px;background:var(--lilac);color:var(--purple-dark);font-weight:700}
+  .badge.warn{background:#FFF0D6;color:#8A5A00}
+  .demo-nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .demo-nav button{border:1px solid #D8CCE8;background:#fff;color:var(--purple-dark);border-radius:10px;padding:7px 12px;cursor:pointer;font-weight:600}
+  .demo-nav button:hover{background:var(--lilac)}
+  .layout{display:grid;grid-template-columns:430px minmax(320px,1fr);gap:24px;padding:24px;max-width:1500px;margin:0 auto}
+  @media(max-width:980px){.layout{grid-template-columns:1fr;justify-items:center}}
+
+  .phone{
+    position:relative;width:390px;height:min(780px,86vh);background:var(--bg);border:10px solid #2B2333;border-radius:42px;
+    box-shadow:0 24px 50px rgba(50,30,80,.28);overflow:hidden;display:flex;flex-direction:column;color:var(--ink)
+  }
+  .phone.text-lg{--fs:17px}.phone.text-xl{--fs:19px}
+  .phone.contrast-alto{--bg:#121212;--ink:#F7F2FF;--surface:#1E1E1E;--lilac:#3A2F4A;--muted:#CBC3D6}
+  .phone.contrast-maximo{--bg:#000;--ink:#FFF;--surface:#000;--lilac:#000;--muted:#FFF}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:22px;background:#2B2333;border-radius:0 0 16px 16px;z-index:5}
+  .statusbar{height:30px;flex:0 0 30px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:12px;font-weight:700;background:var(--bg);border-bottom:1px solid rgba(0,0,0,.05)}
+  .screen{flex:1;overflow-y:auto;padding:14px 16px 76px;font-size:var(--fs);background:var(--bg)}
+  .screen::-webkit-scrollbar{width:5px}.screen::-webkit-scrollbar-thumb{background:#C9BED6;border-radius:5px}
+
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .logo{width:42px;height:42px;border-radius:14px;background:var(--purple);color:#fff;display:grid;place-items:center;font-size:22px}
+  .brand h2{margin:0;font-size:24px}.brand p{margin:0;font-size:12px;color:var(--muted)}
+  .star{color:var(--pink);font-size:24px}
+  .card{background:var(--surface);border-radius:var(--radius);padding:16px;box-shadow:0 2px 8px rgba(60,40,90,.10);margin:14px 0}
+  .intro{background:var(--lilac)}
+  h3{margin:0 0 8px;font-size:18px}
+  label{display:block;font-weight:700;margin:14px 0 6px;font-size:.92em}
+  select,input,textarea{width:100%;border:1.5px solid #C9BED6;border-radius:12px;padding:11px 12px;font:inherit;background:var(--surface);color:var(--ink)}
+  textarea{resize:vertical;min-height:64px}
+  .btn{border:0;border-radius:14px;background:var(--purple);color:#fff;padding:13px 16px;font:inherit;font-weight:700;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .btn.secondary{background:transparent;color:var(--purple);border:1.5px solid var(--purple)}
+  .btn.green{background:#2E7D32}.btn.red{background:#C62828}
+  .btn.slim{padding:9px 12px;border-radius:10px;width:auto}
+  .row{display:flex;gap:10px}.row>*{flex:1}
+  .yesno button.selected{outline:4px solid rgba(103,80,164,.35)}
+  .hint{font-size:12px;color:var(--muted);line-height:1.4}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:14px}
+  .cat{border:0;border-radius:18px;padding:14px;min-height:118px;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;font:inherit;font-weight:700;color:var(--ink)}
+  .cat .ic{font-size:28px}.cat:hover{filter:brightness(.96)}
+  .cat.tramites{background:var(--blue)}.cat.salud{background:var(--rose)}.cat.edu{background:var(--edu)}
+  .cat.empleo{background:var(--peach)}.cat.apoyos{background:var(--mint)}.cat.info{background:var(--sky)}
+
+  .nav{position:absolute;bottom:0;left:0;right:0;height:66px;display:flex;background:var(--surface);border-top:1px solid rgba(0,0,0,.08);z-index:4}
+  .nav button{flex:1;border:0;background:transparent;color:var(--muted);font:inherit;font-size:11px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}
+  .nav button.active{color:var(--purple)}
+  .nav .ico{font-size:20px}
+
+  .chat-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px}
+  .bubble{max-width:86%;border-radius:16px;padding:11px 13px;margin:9px 0;background:var(--surface);white-space:pre-wrap;line-height:1.45;box-shadow:0 1px 5px rgba(60,40,90,.08)}
+  .bubble.user{margin-left:auto;background:var(--lilac)}
+  .bubble .who{font-size:11px;font-weight:800;color:var(--purple);display:block;margin-bottom:4px}
+  .thinking{text-align:center;color:var(--muted);font-style:italic;margin:12px}
+  .composer{position:sticky;bottom:0;background:var(--bg);padding:8px 0 4px;display:flex;gap:7px;align-items:flex-end}
+  .composer textarea{min-height:46px}
+  .icon-btn{border:0;background:var(--lilac);color:var(--purple);border-radius:12px;width:46px;height:46px;font-size:19px;cursor:pointer;flex:0 0 auto}
+  .icon-btn.rec{background:#FFD6D6;color:#B71C1C;animation:pulse 1s infinite}
+  @keyframes pulse{50%{opacity:.55}}
+
+  .toggle-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(120,100,150,.15)}
+  .toggle-row:last-child{border-bottom:0}
+  .toggle-row div{flex:1}
+  .toggle-row b{display:block;font-size:.95em}
+  .toggle-row small{color:var(--muted);font-size:11px}
+  .switch{width:44px;height:25px;border-radius:99px;border:0;background:#C9C3D1;position:relative;cursor:pointer;flex:0 0 auto}
+  .switch::after{content:"";position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:#fff;transition:.2s}
+  .switch.on{background:var(--purple)}.switch.on::after{left:22px}
+  .seg{display:flex;gap:7px}.seg button{border:1.5px solid #C9BED6;background:var(--surface);color:var(--ink);border-radius:10px;padding:8px;cursor:pointer;flex:1;font:inherit;font-weight:700}
+  .seg button.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+  .result{background:var(--lilac);border-radius:14px;padding:12px;margin-top:10px}
+
+  .panel{background:#fff;border-radius:20px;padding:18px;box-shadow:0 10px 30px rgba(50,30,80,.10);align-self:start}
+  .panel h3{margin-top:0}
+  .panel .meta{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px;margin-bottom:14px}
+  .panel .meta span:nth-child(odd){color:var(--muted);font-weight:700}
+  #log{background:#1D1B20;color:#EADDFF;border-radius:14px;padding:12px;max-height:58vh;overflow:auto;font-size:11px;line-height:1.4}
+  .log-entry{border-bottom:1px solid #3A3446;padding:7px 0}
+  .log-entry:first-child{border-bottom:0}
+  .log-title{color:#FFD54F;font-weight:800;word-break:break-all}
+  .log-entry pre{white-space:pre-wrap;margin:5px 0 0;color:#CFE8FF;font-family:Consolas,monospace;font-size:10.5px}
+  .legend{font-size:12px;color:var(--muted);margin-top:12px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>AccesIA · vista previa</h1>
+  <span class="badge">Prototipo visual</span>
+  <span class="badge warn">Respuestas simuladas · sin compilar</span>
+  <div class="demo-nav">
+    <button onclick="go('setup')">Configuración</button>
+    <button onclick="go('home')">Inicio</button>
+    <button onclick="go('assistant')">Asistente</button>
+    <button onclick="go('accessibility')">Accesibilidad</button>
+    <button onclick="resetDemo()">Reiniciar</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="phone" id="phone">
+    <div class="notch"></div>
+    <div class="statusbar"><span>10:24</span><span>▮▮▮ ▰ 100%</span></div>
+    <div class="screen" id="screen"></div>
+    <div class="nav" id="nav"></div>
+  </div>
+
+  <aside class="panel">
+    <h3>Qué está pasando</h3>
+    <div class="meta">
+      <span>Pantalla:</span><span id="mScreen">—</span>
+      <span>Modelo:</span><span id="mModel">—</span>
+      <span>API key:</span><span>integrada en la compilación (local.properties)</span>
+      <span>Lengua:</span><span id="mLang">—</span>
+      <span>Disc. visual:</span><span id="mVision">—</span>
+    </div>
+    <div id="log"></div>
+    <p class="legend">Aquí se registran las acciones como si la app real llamara a <code>generateContent</code> con <code>inline_data</code> para el audio. No se envía nada a Google.</p>
+  </aside>
+</div>
+
+<script>
+const LANGUAGES = ["Español","Náhuatl","Maya (Yucateco)","Mixteco","Zapoteco","Otomí","Totonaco","Huichol","Otra"];
+const state = {
+  screen:"setup", language:"Español", lowVision:false, model:"gemini-3.5-flash-lite",
+  toggles:{translation:true,readAloud:true,voiceNav:false,dictation:true,simplified:false},
+  scale:1, contrast:0, messages:[], draft:"", busy:false, recording:false,
+  translateInput:"", translateFrom:"Español", translateTo:"Náhuatl", translated:"",
+  sourceLang:"Español", targetLang:"Náhuatl", busyTranslate:false
+};
+const screenEl = document.getElementById("screen");
+const navEl = document.getElementById("nav");
+const logEl = document.getElementById("log");
+const phoneEl = document.getElementById("phone");
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const opts = selected => LANGUAGES.map(l => `<option ${l===selected?"selected":""}>${esc(l)}</option>`).join("");
+
+function log(title, payload){
+  const d = document.createElement("div");
+  d.className = "log-entry";
+  const t = new Date().toLocaleTimeString("es-MX",{hour12:false});
+  d.innerHTML = `<div class="log-title">${t} · ${esc(title)}</div><pre>${esc(JSON.stringify(payload,null,2))}</pre>`;
+  logEl.prepend(d);
+}
+function updateMeta(){
+  document.getElementById("mScreen").textContent = state.screen;
+  document.getElementById("mModel").textContent = state.model;
+  document.getElementById("mLang").textContent = state.language;
+  document.getElementById("mVision").textContent = state.lowVision ? "Sí" : "No";
+}
+function applyTheme(){
+  phoneEl.className = "phone" + (state.scale===2?" text-lg":state.scale===3?" text-xl":"") +
+    (state.contrast===1?" contrast-alto":state.contrast===2?" contrast-maximo":"");
+}
+function speak(text){
+  if(!state.toggles.readAloud || !("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(String(text).replace(/^\s*\d+\)\s*/gm,""));
+  u.lang = "es-MX"; u.rate = state.lowVision ? .9 : 1;
+  speechSynthesis.speak(u);
+}
+
+/* ---------- Pantallas ---------- */
+function renderSetup(){
+  return `
+  <div class="brand"><div class="logo">A</div><div><h2>AccesIA</h2><p>Información y servicios para todas las personas</p></div><div class="star">✦</div></div>
+  <div class="card intro"><div style="display:flex;gap:10px"><span style="font-size:24px">🔊</span><div><h3>Configuración inicial</h3><div class="hint">Te haremos unas preguntas para personalizar tu experiencia.</div></div></div></div>
+  <label>¿Cuál es tu lengua nativa?</label>
+  <select id="langSelect">${opts(state.language)}</select>
+  <label>¿Tienes discapacidad visual severa?</label>
+  <div class="row yesno">
+    <button class="btn ${state.lowVision?"green":"secondary"}" data-action="vision" data-value="yes">Sí</button>
+    <button class="btn ${!state.lowVision?"red":"secondary"}" data-action="vision" data-value="no">No</button>
+  </div>
+  <p class="hint">La conexión con Gemini ya viene integrada en la compilación. No necesitas escribir claves aquí.</p>
+  <button class="btn" data-action="finishSetup">Continuar →</button>`;
+}
+function renderHome(){
+  const cats = [
+    ["Trámites","📄","tramites"],["Servicios de salud","♥","salud"],
+    ["Educación","🎓","edu"],["Empleo y oportunidades","💼","empleo"],
+    ["Apoyos gubernamentales","🏛️","apoyos"],["Información general","ℹ️","info"]
+  ];
+  return `
+  <div class="brand"><div class="logo">A</div><div><h2>AccesIA</h2></div><button class="btn secondary slim" style="margin-left:auto;width:auto" data-action="go" data-value="accessibility">⚙</button></div>
+  <h3 style="margin-top:22px;font-size:23px">¿En qué te podemos ayudar hoy?</h3>
+  <div class="grid">${cats.map(([t,i,c])=>`<button class="cat ${c}" data-action="category" data-value="${esc(t)}"><span class="ic">${i}</span><span>${esc(t)}</span></button>`).join("")}</div>
+  <button class="btn" style="margin-top:20px" data-action="go" data-value="assistant">🎤 Hablar con el asistente IA</button>
+  <p class="hint" style="margin-top:16px">Toca una tarjeta para que el asistente te explique los pasos.</p>`;
+}
+function renderAssistant(){
+  const bubbles = state.messages.map(m => `
+    <div class="bubble ${m.fromUser?"user":""}"><span class="who">${m.fromUser?"Tú":"Asistente IA"}</span>${esc(m.text)}</div>`).join("");
+  const last = state.messages[state.messages.length-1];
+  const follow = (!state.busy && last && !last.fromUser && last.text.includes("?"))
+    ? `<div class="row" style="margin:10px 0"><button class="btn secondary" data-action="send" data-value="Sí, continuar por favor">Sí, continuar</button><button class="btn secondary" data-action="send" data-value="No, gracias">No, gracias</button></div>` : "";
+  return `
+  <div class="chat-head"><span style="color:var(--pink)">✦</span> Asistente IA
+    <button class="icon-btn" style="width:36px;height:36px;margin-left:auto;font-size:15px" data-action="speakLast" title="Escuchar">🔊</button>
+    <button class="icon-btn" style="width:36px;height:36px;font-size:15px" data-action="clearChat" title="Borrar">🗑</button>
+  </div>
+  <div class="card" style="background:var(--lilac);margin-top:12px"><div class="hint">Habla o escribe tu pregunta. Te explicaré paso a paso con palabras sencillas.</div></div>
+  ${bubbles || `<div class="thinking">Aún no hay mensajes. Prueba con “¿Cómo saco mi INE?”</div>`}
+  ${state.busy?`<div class="thinking">Pensando…</div>`:""}
+  ${follow}
+  <div class="composer">
+    <button class="icon-btn ${state.recording?"rec":""}" data-action="mic" data-value="dictate" title="Dictar">${state.recording?"■":"🎤"}</button>
+    <textarea id="draft" placeholder="${state.recording?"Escuchando…":"Habla o escribe tu pregunta..."}">${esc(state.draft)}</textarea>
+    <button class="icon-btn" data-action="send" title="Enviar">➤</button>
+  </div>
+  <button class="btn secondary" style="margin-top:10px" data-action="mic" data-value="assistant" ${state.busy?"disabled":""}>
+    ${state.recording?"■ Detener grabación":"🎤 Habla con el asistente"}
+  </button>`;
+}
+function renderAccessibility(){
+  const t = state.toggles;
+  const toggle = (key,title,sub) => `<div class="toggle-row"><div><b>${title}</b><small>${sub}</small></div><button class="switch ${t[key]?"on":""}" data-action="toggle" data-value="${key}"></button></div>`;
+  return `
+  <h2>♿ Accesibilidad</h2>
+  <div class="card" style="background:var(--lilac)">
+    ${toggle("translation","Traducción de idioma","Español ↔ lenguas indígenas")}
+    ${toggle("readAloud","Lectura en voz alta","Escucha la información en audio")}
+    ${toggle("voiceNav","Navegación por voz","Controla la app con comandos")}
+    ${toggle("dictation","Dictado por voz","Escribe con tu voz")}
+    ${toggle("simplified","Interfaz simplificada","Botones grandes y textos claros")}
+  </div>
+  ${t.voiceNav?`<div class="card"><h3>Comando por voz</h3><p class="hint">Di: inicio, asistente, accesibilidad o leer.</p><button class="btn" data-action="mic" data-value="command">${state.recording?"■ Detener y enviar":"🎤 Decir un comando"}</button></div>`:""}
+  ${t.translation?`<div class="card">
+    <h3>🌐 Traducción con Gemini</h3>
+    <label>Desde</label><select id="fromLang">${opts(state.translateFrom)}</select>
+    <label>Hacia</label><select id="toLang">${opts(state.translateTo)}</select>
+    <label>Texto a traducir</label><textarea id="translateText" placeholder="Escribe aquí…">${esc(state.translateInput)}</textarea>
+    <button class="btn" style="margin-top:10px" data-action="translate" ${state.busyTranslate?"disabled":""}>${state.busyTranslate?"Traduciendo…":"Traducir"}</button>
+    ${state.translated?`<div class="result"><small class="hint">Resultado</small><div>${esc(state.translated)}</div><button class="btn secondary slim" style="margin-top:8px;width:auto" data-action="speakTranslated">🔊 Escuchar</button></div>`:""}
+    <p class="hint">La precisión depende de la lengua y de los datos del modelo.</p>
+  </div>`:""}
+  <div class="card">
+    <h3>Tamaño del texto</h3>
+    <div class="seg">
+      <button class="${state.scale===1?"active":""}" data-action="scale" data-value="1">A</button>
+      <button class="${state.scale===2?"active":""}" data-action="scale" data-value="2">A+</button>
+      <button class="${state.scale===3?"active":""}" data-action="scale" data-value="3">A++</button>
+    </div>
+    <h3 style="margin-top:14px">Contraste</h3>
+    <div class="seg">
+      <button class="${state.contrast===0?"active":""}" data-action="contrast" data-value="0">Normal</button>
+      <button class="${state.contrast===1?"active":""}" data-action="contrast" data-value="1">Alto</button>
+      <button class="${state.contrast===2?"active":""}" data-action="contrast" data-value="2">Máximo</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Configuración de la app</h3>
+    <p class="hint">La conexión con Gemini ya viene integrada en la compilación. No necesitas escribir ni ver claves en la aplicación.</p>
+    <button class="btn secondary" data-action="go" data-value="setup">Nueva configuración</button>
+  </div>
+  <p class="hint">AccesIA · ODS 10: reducción de las desigualdades</p>`;
+}
+function renderNav(){
+  if(state.screen==="setup"){navEl.style.display="none";return}
+  navEl.style.display="flex";
+  const items=[["home","🏠","Inicio"],["assistant","✦","Asistente"],["accessibility","♿","Accesibilidad"]];
+  navEl.innerHTML=items.map(([r,i,l])=>`<button class="${state.screen===r?"active":""}" data-action="go" data-value="${r}"><span class="ico">${i}</span>${l}</button>`).join("");
+}
+function render(){
+  screenEl.innerHTML = state.screen==="setup"?renderSetup():state.screen==="home"?renderHome():state.screen==="assistant"?renderAssistant():renderAccessibility();
+  renderNav(); applyTheme(); updateMeta();
+  if(state.screen==="assistant") screenEl.scrollTop = screenEl.scrollHeight;
+}
+
+/* ---------- Simulación de Gemini ---------- */
+function fakeResponse(kind, payload){
+  const text = payload.text || "";
+  if(kind==="translate"){
+    const dict={ "hola":{"Náhuatl":"Niltze","Maya (Yucateco)":"B'aax a k'aal?"}, "gracias":{"Náhuatl":"Tlazohcamati"}, "¿cómo estás?":{"Náhuatl":"¿Quen tij itztoque?"} };
+    return dict[text.trim().toLowerCase()]?.[payload.to] || `[Traducción simulada al ${payload.to}] ${text}`;
+  }
+  if(kind==="transcribe") return "¿Cómo puedo sacar mi credencial de INE?";
+  if(kind==="command") return "INICIO";
+  if(kind==="audio-assistant") return `Escuché: ¿Cómo puedo sacar mi credencial de INE?\n\nTe explico paso a paso:\n1) Reúne tus documentos: acta de nacimiento, identificación con foto y comprobante de domicilio.\n2) Agenda una cita en el sitio del INE o en la aplicación.\n3) Acude al módulo el día de tu cita para tomar tus datos.\n\n¿Quieres que te ayude a agendar tu cita?`;
+  if(/s[ií],? continuar|agendar/i.test(text)) return `Claro, te ayudo con el siguiente paso:\n1) Entra a la sección “Agenda una cita” del sitio del INE.\n2) Escribe tu código postal y elige el módulo más cercano.\n3) Selecciona fecha y hora, y guarda tu comprobante.\n\n¿Necesitas que te lo lea en voz alta?`;
+  if(/ine|credencial/i.test(text)) return `Te explico paso a paso de forma sencilla:\n1) Reúne tus documentos: acta de nacimiento, identificación con foto y comprobante de domicilio.\n2) Agenda una cita en el sitio del INE o en la aplicación.\n3) Acude al módulo el día de tu cita.\n\n¿Quieres que te ayude a agendar tu cita?`;
+  if(/salud|doctor|cl[ií]nica/i.test(text)) return `Para acceder a servicios de salud:\n1) Identifica tu centro de salud o clínica más cercana.\n2) Reúne tu credencial y comprobante de domicilio.\n3) Solicita una cita en ventanilla o en la plataforma oficial.\n\n¿Quieres que te ayude a buscar el centro más cercano?`;
+  if(/empleo|trabajo/i.test(text)) return `Para buscar empleo:\n1) Prepara tu currículum con datos y contacto.\n2) Consulta el portal de empleo de tu estado.\n3) Filtra por zona, sueldo y experiencia.\n\n¿Quieres que te ayude a redactar tu currículum?`;
+  return `Te explico paso a paso con palabras sencillas:\n1) Escribe tu pregunta con las palabras más importantes.\n2) Revisa los requisitos en el sitio oficial.\n3) Si necesitas ayuda, dime “ayúdame con el paso 2”.\n\n¿Quieres que continuemos?`;
+}
+function callGemini(kind, payload){
+  log(`POST /v1beta/models/${state.model}:generateContent · ${kind}`, payload);
+  state.busy = true; render();
+  return new Promise(resolve => setTimeout(() => {
+    const text = fakeResponse(kind, payload);
+    log("200 OK · generateContent", {candidates:[{content:{parts:[{text}]}}]});
+    state.busy = false; resolve(text);
+  }, 850));
+}
+
+/* ---------- Acciones ---------- */
+function go(route){
+  state.screen = route;
+  log("Navegación", {pantalla:route});
+  render();
+}
+function resetDemo(){
+  Object.assign(state,{screen:"setup",language:"Español",lowVision:false,messages:[],draft:"",busy:false,recording:false,translated:"",translateInput:"",scale:1,contrast:0});
+  state.toggles={translation:true,readAloud:true,voiceNav:false,dictation:true,simplified:false};
+  logEl.innerHTML=""; log("Demo reiniciada",{ok:true}); render();
+}
+async function send(text){
+  if(state.busy || !text.trim()) return;
+  const q = text.trim(); state.draft="";
+  state.messages.push({fromUser:true,text:q}); render();
+  const answer = await callGemini("assistant",{contents:[{role:"user",parts:[{text:q}]}],language:state.language});
+  state.messages.push({fromUser:false,text:answer}); speak(answer); render();
+}
+async function mockRecord(kind){
+  if(state.busy || state.recording) return;
+  state.recording=true;
+  const file=`audio_${Date.now()}.m4a`;
+  log("MediaRecorder.start()",{archivo:file,formato:"MPEG_4 / AAC"});
+  render();
+  await wait(1100);
+  state.recording=false;
+  log("MediaRecorder.stop()",{archivo:file,tamano:"~48 KB"});
+  const audio={inline_data:{mime_type:"audio/m4a",data:"AAAIG9v… (base64 simulado)"},language:state.language};
+  if(kind==="assistant"){
+    state.messages.push({fromUser:true,text:"Audio enviado"}); render();
+    const answer=await callGemini("assistant-audio",audio);
+    state.messages.push({fromUser:false,text:answer}); speak(answer); render();
+  } else if(kind==="dictate"){
+    const text=await callGemini("transcribe",audio);
+    state.draft=text; render();
+  } else if(kind==="command"){
+    const cmd=await callGemini("command",audio);
+    log("Comando interpretado",{comando:cmd});
+    if(cmd==="INICIO") go("home");
+    else if(cmd==="ASISTENTE") go("assistant");
+    else if(cmd==="ACCESIBILIDAD"||cmd==="TRADUCIR") go("accessibility");
+    else if(cmd==="LEER"){const last=state.messages.filter(m=>!m.fromUser).pop(); if(last) speak(last.text);}
+  }
+}
+async function translate(){
+  const from=document.getElementById("fromLang")?.value || state.translateFrom;
+  const to=document.getElementById("toLang")?.value || state.translateTo;
+  const text=document.getElementById("translateText")?.value || state.translateInput;
+  state.translateFrom=from; state.translateTo=to; state.translateInput=text;
+  if(!text.trim()) return;
+  state.busyTranslate=true;
+  const result=await callGemini("translate",{text,from,to});
+  state.translated=result; state.busyTranslate=false; speak(result); render();
+}
+
+screenEl.addEventListener("input", e => {
+  if(e.target.id==="draft") state.draft=e.target.value;
+  if(e.target.id==="translateText") state.translateInput=e.target.value;
+});
+screenEl.addEventListener("change", e => {
+  if(e.target.id==="langSelect") state.language=e.target.value;
+  if(e.target.id==="fromLang") state.translateFrom=e.target.value;
+  if(e.target.id==="toLang") state.translateTo=e.target.value;
+});
+navEl.addEventListener("click", e => {
+  const el=e.target.closest("[data-action]"); if(el) handle(el.dataset.action, el.dataset.value, el);
+});
+screenEl.addEventListener("click", e => {
+  const el=e.target.closest("[data-action]"); if(el) handle(el.dataset.action, el.dataset.value, el);
+});
+function handle(action, value, el){
+  switch(action){
+    case "go": go(value); break;
+    case "vision":
+      state.lowVision = value==="yes";
+      if(state.lowVision){state.toggles.simplified=true;state.scale=2;}
+      log("Configuración inicial",{discapacidadVisual:state.lowVision}); render(); break;
+    case "finishSetup":
+      log("Configuración guardada",{lengua:state.language,discapacidadVisual:state.lowVision,credencial:"integrada en la compilación"});
+      go("home"); break;
+    case "category":
+      log("Tarjeta seleccionada",{categoria:value});
+      go("assistant"); send(`Quiero información y ayuda sobre: ${value}`); break;
+    case "send": send(value || document.getElementById("draft")?.value || ""); break;
+    case "mic": mockRecord(value); break;
+    case "speakLast": {const last=state.messages.filter(m=>!m.fromUser).pop(); if(last) speak(last.text); break;}
+    case "speakTranslated": speak(state.translated); break;
+    case "clearChat": state.messages=[]; log("Conversación borrada",{ok:true}); render(); break;
+    case "toggle":
+      state.toggles[value]=!state.toggles[value];
+      log("Ajuste cambiado",{[value]:state.toggles[value]}); render(); break;
+    case "scale": state.scale=Number(value); log("Escala de texto",{valor:state.scale}); render(); break;
+    case "contrast": state.contrast=Number(value); log("Contraste",{valor:["normal","alto","máximo"][state.contrast]}); render(); break;
+    case "translate": translate(); break;
+  }
+}
+
+log("Vista previa cargada",{nota:"Simulación local, sin llamadas reales"});
+render();
+</script>
+</body>
+</html>
