@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AccesIA · App web accesible</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="scale-1 contrast-normal">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" data-no-translate aria-hidden="true">A</div>
+      <div>
+        <h1 data-no-translate>AccesIA</h1>
+        <p>Información y servicios para todas las personas</p>
+      </div>
+    </div>
+    <span class="badge" id="connectionBadge" data-no-translate>Conectando…</span>
+    <button class="icon-btn" id="settingsBtn" title="Configuración" aria-label="Configuración">⚙</button>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Navegación principal">
+    <button data-action="go" data-value="home">🏠 Inicio</button>
+    <button data-action="go" data-value="assistant">✦ Asistente</button>
+    <button data-action="go" data-value="accessibility">♿ Accesibilidad</button>
+  </nav>
+
+  <div class="layout">
+    <main id="screen" aria-live="polite"></main>
+
+    <aside class="panel" aria-label="Registro de actividad">
+      <div class="panel-head">
+        <h2>Actividad</h2>
+        <button class="link" id="clearLog">Limpiar</button>
+      </div>
+      <p class="hint">Llamadas reales a Gemini. La clave permanece en el servidor y nunca aparece aquí.</p>
+      <div id="log" class="log"></div>
+    </aside>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
